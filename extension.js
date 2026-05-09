@@ -88,7 +88,7 @@ class Carousel {
                 null
             );
         } catch (e) {
-            console.log(`Wallpaper Carousel: cannot enumerate ${dir}: ${e.message}`);
+            console.warn(`Wallpaper Carousel: cannot enumerate ${dir}: ${e.message}`);
             return;
         }
 
@@ -136,7 +136,7 @@ class Carousel {
             this._monitor.set_rate_limit(MONITOR_RATE_LIMIT_MS);
             this._monitorChangedId = this._monitor.connect('changed', () => this._scheduleRebuild());
         } catch (e) {
-            console.log(`Wallpaper Carousel: cannot monitor ${dir}: ${e.message}`);
+            console.warn(`Wallpaper Carousel: cannot monitor ${dir}: ${e.message}`);
         }
     }
 
@@ -342,7 +342,7 @@ export default class CarouselExtension extends Extension {
         const qs = Main.panel.statusArea.quickSettings;
         const systemItem = qs?._system?._systemItem ?? qs?._system?.quickSettingsItems?.[0];
         if (!systemItem?.child) {
-            console.log('Wallpaper Carousel: could not locate quick-settings system item; skipping button.');
+            console.warn('Wallpaper Carousel: could not locate quick-settings system item; skipping button.');
             return;
         }
 
