@@ -50,6 +50,9 @@ export default class CarouselPreferences extends ExtensionPreferences {
         page.add(this._buildPlaybackGroup(settings, signalIds));
         page.add(this._buildFolderGroup(window, settings, signalIds));
         page.add(this._buildShortcutsGroup(settings));
+        const aboutGroup = this._buildAboutGroup();
+        if (aboutGroup)
+            page.add(aboutGroup);
 
         window.connect('close-request', () => {
             for (const id of signalIds)
@@ -179,6 +182,33 @@ export default class CarouselPreferences extends ExtensionPreferences {
         currentRow.add_suffix(nextBtn);
 
         group.add(currentRow);
+        return group;
+    }
+
+    _buildAboutGroup() {
+        const url = this.metadata.url;
+        if (!url)
+            return null;
+
+        const group = new Adw.PreferencesGroup({title: _('About')});
+
+        const row = new Adw.ActionRow({
+            title: _('Source code'),
+            subtitle: url,
+            activatable: true,
+        });
+
+        const openIcon = new Gtk.Image({
+            icon_name: 'web-browser-symbolic',
+            valign: Gtk.Align.CENTER,
+        });
+        row.add_suffix(openIcon);
+
+        row.connect('activated', () => {
+            Gio.AppInfo.launch_default_for_uri(url, null);
+        });
+
+        group.add(row);
         return group;
     }
 

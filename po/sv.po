@@ -113,3 +113,11 @@ msgstr "Visa i skrivbordsmenyn"
 #: prefs.js
 msgid "Show in Quick Settings"
 msgstr "Visa i Snabbinställningar"
+
+#: prefs.js
+msgid "About"
+msgstr "Om"
+
+#: prefs.js
+msgid "Source code"
+msgstr "Källkod"

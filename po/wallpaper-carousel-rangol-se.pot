@@ -115,3 +115,11 @@ msgstr ""
 #: prefs.js
 msgid "Show in Quick Settings"
 msgstr ""
+
+#: prefs.js
+msgid "About"
+msgstr ""
+
+#: prefs.js
+msgid "Source code"
+msgstr ""
