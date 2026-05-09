@@ -1,0 +1,115 @@
+# Swedish translation for Wallpaper Carousel.
+# This file is distributed under the same license as the Wallpaper Carousel package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Wallpaper Carousel\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-09 00:00+0000\n"
+"PO-Revision-Date: 2026-05-09 00:00+0000\n"
+"Last-Translator: Alexander Rangol\n"
+"Language-Team: Swedish\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. metadata.json: name
+msgid "Wallpaper Carousel"
+msgstr "Bakgrundskarusell"
+
+#. metadata.json: description
+msgid "Rotates the desktop wallpaper through images in a folder at a set interval."
+msgstr "Roterar skrivbordsbakgrunden genom bilder i en mapp med ett valt intervall."
+
+#: extension.js
+msgid "Next wallpaper"
+msgstr "Nästa bakgrundsbild"
+
+#: extension.js
+msgid "Open Wallpaper Carousel settings"
+msgstr "Öppna inställningar för Bakgrundskarusell"
+
+#: prefs.js
+msgid "Folder & timing"
+msgstr "Mapp och intervall"
+
+#: prefs.js
+msgid "Wallpaper folder"
+msgstr "Mapp för bakgrundsbilder"
+
+#: prefs.js
+msgid "Not set"
+msgstr "Ej angiven"
+
+#: prefs.js
+msgid "Browse…"
+msgstr "Bläddra…"
+
+#: prefs.js
+msgid "Interval"
+msgstr "Intervall"
+
+#: prefs.js
+msgid "5 minutes"
+msgstr "5 minuter"
+
+#: prefs.js
+msgid "10 minutes"
+msgstr "10 minuter"
+
+#: prefs.js
+msgid "15 minutes"
+msgstr "15 minuter"
+
+#: prefs.js
+msgid "30 minutes"
+msgstr "30 minuter"
+
+#: prefs.js
+msgid "45 minutes"
+msgstr "45 minuter"
+
+#: prefs.js
+msgid "1 hour"
+msgstr "1 timme"
+
+#: prefs.js
+msgid "Random order"
+msgstr "Slumpmässig ordning"
+
+#: prefs.js
+msgid "Playback"
+msgstr "Uppspelning"
+
+#: prefs.js
+msgid "Current wallpaper"
+msgstr "Aktuell bakgrundsbild"
+
+#: prefs.js
+msgid "Previous wallpaper"
+msgstr "Föregående bakgrundsbild"
+
+#: prefs.js
+msgid "Pause"
+msgstr "Pausa"
+
+#: prefs.js
+msgid "Resume"
+msgstr "Återuppta"
+
+#: prefs.js
+msgid "Select wallpaper folder"
+msgstr "Välj mapp för bakgrundsbilder"
+
+#: prefs.js
+msgid "Shortcuts"
+msgstr "Genvägar"
+
+#: prefs.js
+msgid "Show in desktop menu"
+msgstr "Visa i skrivbordsmenyn"
+
+#: prefs.js
+msgid "Show in Quick Settings"
+msgstr "Visa i Snabbinställningar"

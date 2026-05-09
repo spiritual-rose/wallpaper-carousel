@@ -1,0 +1,9 @@
+# Build artifacts produced by the Makefile
+locale/
+schemas/gschemas.compiled
+wallpaper-carousel@rangol.se.zip
+
+# Local tooling
+venv/
+__pycache__/
+*.pyc

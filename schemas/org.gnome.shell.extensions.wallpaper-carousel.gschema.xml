@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SPDX-FileCopyrightText: 2026 Alexander Rangol <alexander@rangol.se>
+  SPDX-License-Identifier: GPL-2.0-or-later
+-->
+<schemalist>
+    <schema id="org.gnome.shell.extensions.wallpaper-carousel" path="/org/gnome/shell/extensions/wallpaper-carousel/">
+        <key type="s" name="directory">
+            <default>''</default>
+            <summary>Folder containing wallpaper images.</summary>
+        </key>
+        <key type="i" name="interval-seconds">
+            <range min="10" max="86400"/>
+            <default>600</default>
+            <summary>Seconds between wallpaper changes.</summary>
+        </key>
+        <key type="b" name="random">
+            <default>true</default>
+            <summary>Shuffle the queue rather than using alphabetical order.</summary>
+        </key>
+        <key type="b" name="paused">
+            <default>false</default>
+            <summary>Pause the rotation.</summary>
+        </key>
+        <key type="i" name="current-index">
+            <default>0</default>
+            <summary>Position in the queue.</summary>
+        </key>
+        <key type="s" name="current-uri">
+            <default>''</default>
+            <summary>URI of the currently displayed wallpaper.</summary>
+        </key>
+        <key type="i" name="change-trigger">
+            <default>0</default>
+            <summary>Manual change trigger (1 = previous, 2 = next, 0 = idle). Written by prefs, consumed and reset by the shell.</summary>
+        </key>
+        <key type="b" name="show-context-menu-item">
+            <default>true</default>
+            <summary>Add a "Next wallpaper" entry to the desktop right-click menu.</summary>
+        </key>
+        <key type="b" name="show-quick-settings-button">
+            <default>true</default>
+            <summary>Add a wallpaper button to the quick settings system actions row.</summary>
+        </key>
+    </schema>
+</schemalist>

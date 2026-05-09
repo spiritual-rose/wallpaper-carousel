@@ -1,0 +1,10 @@
+{
+  "name": "Wallpaper Carousel",
+  "description": "Rotates the desktop wallpaper through images in a folder at a set interval.",
+  "uuid": "wallpaper-carousel@rangol.se",
+  "settings-schema": "org.gnome.shell.extensions.wallpaper-carousel",
+  "gettext-domain": "wallpaper-carousel-rangol-se",
+  "shell-version": ["48", "49", "50"],
+  "url": "https://github.com/spiritual-rose/wallpaper-carousel",
+  "version": 1
+}
