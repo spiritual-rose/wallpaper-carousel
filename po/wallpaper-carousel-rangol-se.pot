@@ -33,7 +33,7 @@ msgstr ""
 
 
 #: prefs.js
-msgid "Folder & timing"
+msgid "Source"
 msgstr ""
 
 #: prefs.js
@@ -77,7 +77,7 @@ msgid "1 hour"
 msgstr ""
 
 #: prefs.js
-msgid "Random order"
+msgid "Shuffle"
 msgstr ""
 
 #: prefs.js
@@ -105,21 +105,17 @@ msgid "Select wallpaper folder"
 msgstr ""
 
 #: prefs.js
-msgid "Shortcuts"
+msgid "Shell integration"
 msgstr ""
 
 #: prefs.js
-msgid "Show in desktop menu"
+msgid "Next wallpaper in desktop menu"
 msgstr ""
 
 #: prefs.js
-msgid "Show in Quick Settings"
+msgid "Shortcut in Quick Settings"
 msgstr ""
 
 #: prefs.js
-msgid "About"
-msgstr ""
-
-#: prefs.js
-msgid "Source code"
+msgid "No images in folder"
 msgstr ""

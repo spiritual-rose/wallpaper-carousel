@@ -31,8 +31,8 @@ msgid "Open Wallpaper Carousel settings"
 msgstr "Öppna inställningar för Bakgrundskarusell"
 
 #: prefs.js
-msgid "Folder & timing"
-msgstr "Mapp och intervall"
+msgid "Source"
+msgstr "Källa"
 
 #: prefs.js
 msgid "Wallpaper folder"
@@ -75,8 +75,8 @@ msgid "1 hour"
 msgstr "1 timme"
 
 #: prefs.js
-msgid "Random order"
-msgstr "Slumpmässig ordning"
+msgid "Shuffle"
+msgstr "Blanda"
 
 #: prefs.js
 msgid "Playback"
@@ -103,21 +103,17 @@ msgid "Select wallpaper folder"
 msgstr "Välj mapp för bakgrundsbilder"
 
 #: prefs.js
-msgid "Shortcuts"
-msgstr "Genvägar"
+msgid "Shell integration"
+msgstr "Skalintegration"
 
 #: prefs.js
-msgid "Show in desktop menu"
-msgstr "Visa i skrivbordsmenyn"
+msgid "Next wallpaper in desktop menu"
+msgstr "Nästa bakgrundsbild i skrivbordsmenyn"
 
 #: prefs.js
-msgid "Show in Quick Settings"
-msgstr "Visa i Snabbinställningar"
+msgid "Shortcut in Quick Settings"
+msgstr "Genväg i Snabbinställningar"
 
 #: prefs.js
-msgid "About"
-msgstr "Om"
-
-#: prefs.js
-msgid "Source code"
-msgstr "Källkod"
+msgid "No images in folder"
+msgstr "Inga bilder i mappen"

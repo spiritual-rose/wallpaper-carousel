@@ -30,14 +30,20 @@ class Carousel {
         this._monitor = null;
         this._monitorChangedId = 0;
         this._rebuildPendingId = 0;
+        // Echo-suppression token for our own picture-uri writes.
+        this._lastSetUri = null;
+        this._bgWatchId = 0;
 
         this._signalIds = [
             this._settings.connect('changed::directory', () => this._rebuildAndRestart()),
             this._settings.connect('changed::random', () => this._rebuildAndRestart()),
             this._settings.connect('changed::interval-seconds', () => this._restartTimer()),
-            this._settings.connect('changed::paused', () => this._restartTimer()),
+            this._settings.connect('changed::paused', () => this._onPausedChanged()),
             this._settings.connect('changed::change-trigger', () => this._handleTrigger()),
         ];
+
+        this._bgWatchId = this._bgSettings.connect('changed::picture-uri',
+            () => this._onExternalWallpaperChange());
     }
 
     start() {
@@ -48,6 +54,11 @@ class Carousel {
         for (const id of this._signalIds)
             this._settings.disconnect(id);
         this._signalIds = [];
+
+        if (this._bgWatchId) {
+            this._bgSettings.disconnect(this._bgWatchId);
+            this._bgWatchId = 0;
+        }
 
         this._cancelTimer();
         this._cancelPendingRebuild();
@@ -177,6 +188,7 @@ class Carousel {
 
     _showCurrent() {
         if (!this._queue.length) {
+            this._settings.set_strv('upcoming-uris', []);
             this._settings.set_string('current-uri', '');
             return;
         }
@@ -185,23 +197,46 @@ class Carousel {
             idx = 0;
             this._settings.set_int('current-index', 0);
         }
-        const uri = Gio.File.new_for_path(this._queue[idx]).get_uri();
-        this._bgSettings.set_string('picture-uri', uri);
-        this._bgSettings.set_string('picture-uri-dark', uri);
-        this._settings.set_string('current-uri', uri);
+        const rotated = this._queue.slice(idx).concat(this._queue.slice(0, idx));
+        const uris = rotated.slice(0, 4).map(p => Gio.File.new_for_path(p).get_uri());
+        this._lastSetUri = uris[0];
+        this._bgSettings.set_string('picture-uri', uris[0]);
+        this._bgSettings.set_string('picture-uri-dark', uris[0]);
+        // Write upcoming-uris before current-uri so prefs subscribers (which
+        // listen only on current-uri) see fresh data on a single refresh.
+        this._settings.set_strv('upcoming-uris', uris.slice(1));
+        this._settings.set_string('current-uri', uris[0]);
+    }
+
+    _onPausedChanged() {
+        // Snap to our current on resume so an external pick (which
+        // auto-paused us) doesn't linger until the next tick.
+        if (!this._settings.get_boolean('paused'))
+            this._showCurrent();
+        this._restartTimer();
+    }
+
+    // Auto-pause when something else changes the wallpaper, ignoring
+    // our own writes (matched via _lastSetUri).
+    _onExternalWallpaperChange() {
+        if (!this._bgSettings)
+            return;
+        const current = this._bgSettings.get_string('picture-uri');
+        if (current === this._lastSetUri)
+            return;
+        if (this._settings.get_boolean('paused'))
+            return;
+        this._settings.set_boolean('paused', true);
     }
 
     _advance(delta) {
         if (!this._queue.length)
             return;
         let idx = this._settings.get_int('current-index') + delta;
-        if (idx >= this._queue.length) {
+        if (idx >= this._queue.length)
             idx = 0;
-            if (this._settings.get_boolean('random'))
-                this._shuffle();
-        } else if (idx < 0) {
+        else if (idx < 0)
             idx = this._queue.length - 1;
-        }
         this._settings.set_int('current-index', idx);
         this._showCurrent();
     }
