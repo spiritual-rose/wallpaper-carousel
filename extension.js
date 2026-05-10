@@ -15,6 +15,12 @@ const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tiff', '.tif', '
 const REBUILD_DEBOUNCE_MS = 2000;
 const MONITOR_RATE_LIMIT_MS = 5000;
 
+// One-way IPC from prefs to shell via the change-trigger int key.
+// Values must match prefs.js.
+const TRIGGER_IDLE = 0;
+const TRIGGER_PREV = 1;
+const TRIGGER_NEXT = 2;
+
 class Carousel {
     constructor(settings) {
         this._settings = settings;
@@ -53,13 +59,13 @@ class Carousel {
 
     _handleTrigger() {
         const v = this._settings.get_int('change-trigger');
-        if (v === 0)
+        if (v === TRIGGER_IDLE)
             return;
-        if (v === 1)
+        if (v === TRIGGER_PREV)
             this._advance(-1);
-        else if (v === 2)
+        else if (v === TRIGGER_NEXT)
             this._advance(+1);
-        this._settings.set_int('change-trigger', 0);
+        this._settings.set_int('change-trigger', TRIGGER_IDLE);
         this._restartTimer();
     }
 
@@ -205,6 +211,14 @@ class Carousel {
         this._restartTimer();
     }
 
+    pauseForMenu() {
+        this._cancelTimer();
+    }
+
+    resumeFromMenu() {
+        this._restartTimer();
+    }
+
     _restartTimer() {
         this._cancelTimer();
         if (this._settings.get_boolean('paused'))
@@ -232,6 +246,8 @@ export default class CarouselExtension extends Extension {
         this._carousel = new Carousel(this._settings);
         this._carousel.start();
         this._menuOpenCount = 0;
+        this._touchedMenus = new Set();
+        this._injectionManager = null;
 
         this._extSignals = [
             this._settings.connect('changed::show-context-menu-item',
@@ -273,11 +289,11 @@ export default class CarouselExtension extends Extension {
         if (isOpen) {
             this._menuOpenCount += 1;
             if (this._menuOpenCount === 1)
-                this._carousel?._cancelTimer();
+                this._carousel?.pauseForMenu();
         } else {
             this._menuOpenCount = Math.max(0, this._menuOpenCount - 1);
             if (this._menuOpenCount === 0)
-                this._carousel?._restartTimer();
+                this._carousel?.resumeFromMenu();
         }
     }
 
@@ -286,7 +302,6 @@ export default class CarouselExtension extends Extension {
         if (!this._settings.get_boolean('show-context-menu-item'))
             return;
 
-        this._touchedMenus = new Set();
         this._injectionManager = new InjectionManager();
         this._injectionManager.overrideMethod(Main.layoutManager, '_addBackgroundMenu', originalMethod => {
             const ext = this;
@@ -316,9 +331,8 @@ export default class CarouselExtension extends Extension {
         if (!this._injectionManager)
             return;
 
-        // Release signals on every menu we held a reference to. The menus
-        // themselves are about to be destroyed by _updateBackgrounds(), but
-        // explicit disconnect keeps the linter (and reviewers) happy.
+        // _updateBackgrounds() destroys these menus, but disconnect first
+        // so we don't leave dangling handlers if destruction is deferred.
         for (const menu of this._touchedMenus) {
             try {
                 menu.disconnectObject(this);

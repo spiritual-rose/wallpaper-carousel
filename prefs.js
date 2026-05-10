@@ -3,14 +3,16 @@
 
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk';
 
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-// N_ marks strings for xgettext extraction without translating at module-load
-// time; we translate via _() at the point of display.
 const N_ = s => s;
+
+// One-way IPC from prefs to shell via the change-trigger int key.
+// Values must match extension.js.
+const TRIGGER_PREV = 1;
+const TRIGGER_NEXT = 2;
 
 const INTERVAL_PRESETS = [
     {seconds:  300, label: N_('5 minutes')},
@@ -137,8 +139,7 @@ export default class CarouselPreferences extends ExtensionPreferences {
                 return;
             }
             try {
-                const path = Gio.File.new_for_uri(uri).get_path();
-                currentRow.subtitle = path ? GLib.path_get_basename(path) : '—';
+                currentRow.subtitle = Gio.File.new_for_uri(uri).get_basename() || '—';
             } catch (_e) {
                 currentRow.subtitle = '—';
             }
@@ -152,7 +153,7 @@ export default class CarouselPreferences extends ExtensionPreferences {
             valign: Gtk.Align.CENTER,
             css_classes: ['flat'],
         });
-        prevBtn.connect('clicked', () => settings.set_int('change-trigger', 1));
+        prevBtn.connect('clicked', () => settings.set_int('change-trigger', TRIGGER_PREV));
         currentRow.add_suffix(prevBtn);
 
         const pauseBtn = new Gtk.Button({
@@ -178,7 +179,7 @@ export default class CarouselPreferences extends ExtensionPreferences {
             valign: Gtk.Align.CENTER,
             css_classes: ['flat'],
         });
-        nextBtn.connect('clicked', () => settings.set_int('change-trigger', 2));
+        nextBtn.connect('clicked', () => settings.set_int('change-trigger', TRIGGER_NEXT));
         currentRow.add_suffix(nextBtn);
 
         group.add(currentRow);
@@ -219,11 +220,8 @@ export default class CarouselPreferences extends ExtensionPreferences {
         });
 
         const current = settings.get_string('directory');
-        if (current) {
-            const initial = Gio.File.new_for_path(current);
-            if (initial.query_exists(null))
-                dialog.set_initial_folder(initial);
-        }
+        if (current)
+            dialog.set_initial_folder(Gio.File.new_for_path(current));
 
         dialog.select_folder(parent, null, (dlg, res) => {
             try {
