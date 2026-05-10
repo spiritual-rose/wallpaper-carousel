@@ -30,6 +30,23 @@ const INTERVAL_PRESETS = [
     {seconds: 3600, label: N_('1 hour')},
 ];
 
+let _previewCssLoaded = false;
+
+function ensurePreviewCss() {
+    if (_previewCssLoaded)
+        return;
+    // Adwaita's .circular class is scoped to buttons; on a Box it's a no-op.
+    // This rule rounds the .osd backdrop on the playback-mode pill.
+    const provider = new Gtk.CssProvider();
+    provider.load_from_string('.wpc-mode-pill { border-radius: 9999px; }');
+    Gtk.StyleContext.add_provider_for_display(
+        Gdk.Display.get_default(),
+        provider,
+        Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
+    _previewCssLoaded = true;
+}
+
 function findClosestPresetIndex(seconds) {
     let bestIdx = 0;
     let bestDelta = Infinity;
@@ -82,13 +99,43 @@ export default class CarouselPreferences extends ExtensionPreferences {
         });
         group.add(frame);
 
+        const overlay = new Gtk.Overlay();
+        frame.set_child(overlay);
+
+        ensurePreviewCss();
+
+        const iconBackdrop = new Gtk.Box({
+            halign: Gtk.Align.CENTER,
+            valign: Gtk.Align.CENTER,
+            css_classes: ['osd', 'wpc-mode-pill'],
+        });
+        const modeIcon = new Gtk.Image({
+            pixel_size: 24,
+            margin_top: 10,
+            margin_bottom: 10,
+            margin_start: 10,
+            margin_end: 10,
+        });
+        iconBackdrop.append(modeIcon);
+        overlay.add_overlay(iconBackdrop);
+
+        const refreshModeIcon = () => {
+            if (settings.get_boolean('paused'))
+                modeIcon.icon_name = 'media-playback-pause-symbolic';
+            else if (settings.get_boolean('random'))
+                modeIcon.icon_name = 'media-playlist-shuffle-symbolic';
+            else
+                modeIcon.icon_name = 'media-playlist-repeat-symbolic';
+        };
+        refreshModeIcon();
+
         const refresh = () => {
             const paths = this._collectQueuePaths(
                 settings.get_string('current-uri'),
                 settings.get_strv('upcoming-uris')
             );
             if (!paths.length) {
-                frame.set_child(new Gtk.Label({
+                overlay.set_child(new Gtk.Label({
                     label: _('No images in folder'),
                     halign: Gtk.Align.CENTER,
                     valign: Gtk.Align.CENTER,
@@ -104,13 +151,15 @@ export default class CarouselPreferences extends ExtensionPreferences {
                 const row = Math.floor(i / 2);
                 grid.attach(this._makeThumbnail(paths[i % paths.length], THUMB_WIDTH, THUMB_HEIGHT), col, row, 1, 1);
             }
-            frame.set_child(grid);
+            overlay.set_child(grid);
         };
         refresh();
 
         // Subscribe only to current-uri: extension.js writes upcoming-uris
         // first, so by the time this fires both keys are fresh.
         signalIds.push(settings.connect('changed::current-uri', refresh));
+        signalIds.push(settings.connect('changed::paused', refreshModeIcon));
+        signalIds.push(settings.connect('changed::random', refreshModeIcon));
 
         return group;
     }
