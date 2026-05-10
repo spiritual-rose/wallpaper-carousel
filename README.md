@@ -1,15 +1,20 @@
 # Wallpaper Carousel
 
-A small GNOME Shell extension that cycles your desktop wallpaper through a
-folder of images on a timer.
+[![GNOME Shell](https://img.shields.io/badge/GNOME_Shell-48_–_50-4A86CF?logo=gnome&logoColor=white)](https://github.com/SpiritualRose/wallpaper-carousel)
+[![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-blue.svg)](LICENSE)
 
-Point it at a folder, pick an interval (5 minutes up to an hour), and let it
-go. The preferences window has prev/pause/next controls and a few toggles —
-random vs. alphabetical order, whether to add a "Next wallpaper" entry to the
-desktop right-click menu, and whether to drop a button next to the gear in
-Quick Settings that opens these preferences.
+A GNOME Shell extension that cycles your desktop wallpaper through a folder of
+images on a timer. Point it at a folder, pick an interval, and forget about it
+— the preferences window handles the rest.
 
-Targets GNOME Shell 48–50. Ships with a Swedish translation.
+## Features
+
+- Rotates wallpapers every 5 to 60 minutes
+- Shuffle or alphabetical order
+- Pauses automatically when another app changes your wallpaper
+- Live preview of upcoming wallpapers in preferences
+- Optional "Next wallpaper" entry in the desktop right-click menu
+- Optional Quick Settings button to open preferences
 
 ## Install
 
@@ -18,8 +23,8 @@ make install
 gnome-extensions enable wallpaper-carousel@rangol.se
 ```
 
-On Wayland you'll need to log out and back in for the shell to pick up the new
-code. On X11, `Alt+F2 → r → Enter` is enough.
+On Wayland, log out and back in. On X11, `Alt+F2 → r → Enter` restarts the
+shell in place.
 
 Then open preferences and point it at a folder:
 
@@ -29,14 +34,15 @@ gnome-extensions prefs wallpaper-carousel@rangol.se
 
 ## Translations
 
-Copy the template, fill in the `msgstr` lines, reinstall:
+Copy the template, fill in the `msgstr` lines, and reinstall:
 
 ```sh
 cp po/wallpaper-carousel-rangol-se.pot po/<lang>.po
 make install
 ```
 
-`<lang>` is a POSIX locale code — `de`, `fr`, `nb`, and so on.
+`<lang>` is a POSIX locale code — `de`, `fr`, `nb`, and so on. Swedish is
+already included.
 
 ## Uninstall
 
