@@ -47,6 +47,10 @@ msgid "Browse…"
 msgstr "Bläddra…"
 
 #: prefs.js
+msgid "Include subfolders"
+msgstr "Inkludera undermappar"
+
+#: prefs.js
 msgid "Interval"
 msgstr "Intervall"
 

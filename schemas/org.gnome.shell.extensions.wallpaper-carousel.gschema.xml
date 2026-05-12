@@ -9,6 +9,10 @@
             <default>''</default>
             <summary>Folder containing wallpaper images.</summary>
         </key>
+        <key type="b" name="include-subfolders">
+            <default>false</default>
+            <summary>Include images from subfolders.</summary>
+        </key>
         <key type="i" name="interval-seconds">
             <range min="10" max="86400"/>
             <default>600</default>

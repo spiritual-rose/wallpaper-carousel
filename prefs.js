@@ -326,6 +326,10 @@ export default class CarouselPreferences extends ExtensionPreferences {
         folderRow.activatable_widget = browseBtn;
         group.add(folderRow);
 
+        const subfoldersRow = new Adw.SwitchRow({title: _('Include subfolders')});
+        settings.bind('include-subfolders', subfoldersRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        group.add(subfoldersRow);
+
         return group;
     }
 

@@ -12,6 +12,7 @@ import {Extension, InjectionManager, gettext as _} from 'resource:///org/gnome/s
 
 const BG_SCHEMA = 'org.gnome.desktop.background';
 const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tiff', '.tif', '.avif'];
+const FILE_QUERY_ATTRIBUTES = 'standard::name,standard::type,standard::is-symlink';
 const REBUILD_DEBOUNCE_MS = 2000;
 const MONITOR_RATE_LIMIT_MS = 5000;
 
@@ -21,14 +22,17 @@ const TRIGGER_IDLE = 0;
 const TRIGGER_PREV = 1;
 const TRIGGER_NEXT = 2;
 
+function warn(message) {
+    console.warn(`Wallpaper Carousel: ${message}`);
+}
+
 class Carousel {
     constructor(settings) {
         this._settings = settings;
         this._bgSettings = new Gio.Settings({schema_id: BG_SCHEMA});
         this._queue = [];
         this._timeoutId = 0;
-        this._monitor = null;
-        this._monitorChangedId = 0;
+        this._monitors = [];
         this._rebuildPendingId = 0;
         // Echo-suppression token for our own picture-uri writes.
         this._lastSetUri = null;
@@ -36,6 +40,7 @@ class Carousel {
 
         this._signalIds = [
             this._settings.connect('changed::directory', () => this._rebuildAndRestart()),
+            this._settings.connect('changed::include-subfolders', () => this._rebuildAndRestart()),
             this._settings.connect('changed::random', () => this._rebuildAndRestart()),
             this._settings.connect('changed::interval-seconds', () => this._restartTimer()),
             this._settings.connect('changed::paused', () => this._onPausedChanged()),
@@ -97,29 +102,11 @@ class Carousel {
         if (!folder.query_exists(null))
             return;
 
-        let enumerator;
-        try {
-            enumerator = folder.enumerate_children(
-                'standard::name,standard::type',
-                Gio.FileQueryInfoFlags.NONE,
-                null
-            );
-        } catch (e) {
-            console.warn(`Wallpaper Carousel: cannot enumerate ${dir}: ${e.message}`);
-            return;
-        }
-
-        let info;
-        while ((info = enumerator.next_file(null))) {
-            if (info.get_file_type() !== Gio.FileType.REGULAR)
-                continue;
-            const name = info.get_name();
-            const lower = name.toLowerCase();
-            if (!IMAGE_EXTS.some(ext => lower.endsWith(ext)))
-                continue;
-            this._queue.push(GLib.build_filenamev([dir, name]));
-        }
-        enumerator.close(null);
+        this._addImagesFromFolder(
+            folder,
+            dir,
+            this._settings.get_boolean('include-subfolders')
+        );
 
         if (this._settings.get_boolean('random'))
             this._shuffle();
@@ -137,6 +124,46 @@ class Carousel {
         const idx = this._settings.get_int('current-index');
         if (idx < 0 || idx >= this._queue.length)
             this._settings.set_int('current-index', 0);
+    }
+
+    _addImagesFromFolder(folder, dir, includeSubfolders) {
+        let enumerator;
+        try {
+            enumerator = folder.enumerate_children(
+                FILE_QUERY_ATTRIBUTES,
+                Gio.FileQueryInfoFlags.NONE,
+                null
+            );
+        } catch (e) {
+            warn(`cannot enumerate ${dir}: ${e.message}`);
+            return;
+        }
+
+        try {
+            let info;
+            while ((info = enumerator.next_file(null))) {
+                const name = info.get_name();
+                const child = folder.get_child(name);
+                const childPath = child.get_path();
+                if (!childPath)
+                    continue;
+
+                const fileType = info.get_file_type();
+                if (fileType === Gio.FileType.REGULAR) {
+                    const lower = name.toLowerCase();
+                    if (IMAGE_EXTS.some(ext => lower.endsWith(ext)))
+                        this._queue.push(childPath);
+                } else if (includeSubfolders &&
+                    fileType === Gio.FileType.DIRECTORY &&
+                    !info.get_is_symlink()) {
+                    this._addImagesFromFolder(child, childPath, includeSubfolders);
+                }
+            }
+        } catch (e) {
+            warn(`cannot enumerate ${dir}: ${e.message}`);
+        } finally {
+            enumerator.close(null);
+        }
     }
 
     // If the currently displayed wallpaper is a member of our queue, point
@@ -173,24 +200,64 @@ class Carousel {
         if (!folder.query_exists(null))
             return;
 
+        this._monitorFolder(folder, dir);
+
+        if (this._settings.get_boolean('include-subfolders'))
+            this._monitorSubfolders(folder, dir);
+    }
+
+    _monitorSubfolders(folder, dir) {
+        let enumerator;
         try {
-            this._monitor = folder.monitor_directory(Gio.FileMonitorFlags.NONE, null);
-            this._monitor.set_rate_limit(MONITOR_RATE_LIMIT_MS);
-            this._monitorChangedId = this._monitor.connect('changed', () => this._scheduleRebuild());
+            enumerator = folder.enumerate_children(
+                FILE_QUERY_ATTRIBUTES,
+                Gio.FileQueryInfoFlags.NONE,
+                null
+            );
         } catch (e) {
-            console.warn(`Wallpaper Carousel: cannot monitor ${dir}: ${e.message}`);
+            warn(`cannot enumerate ${dir}: ${e.message}`);
+            return;
+        }
+
+        try {
+            let info;
+            while ((info = enumerator.next_file(null))) {
+                if (info.get_file_type() !== Gio.FileType.DIRECTORY || info.get_is_symlink())
+                    continue;
+
+                const child = folder.get_child(info.get_name());
+                const childPath = child.get_path();
+                if (!childPath)
+                    continue;
+
+                this._monitorFolder(child, childPath);
+                this._monitorSubfolders(child, childPath);
+            }
+        } catch (e) {
+            warn(`cannot enumerate ${dir}: ${e.message}`);
+        } finally {
+            enumerator.close(null);
+        }
+    }
+
+    _monitorFolder(folder, dir) {
+        try {
+            const monitor = folder.monitor_directory(Gio.FileMonitorFlags.NONE, null);
+            const changedId = monitor.connect('changed', () => this._scheduleRebuild());
+            monitor.set_rate_limit(MONITOR_RATE_LIMIT_MS);
+            this._monitors.push({monitor, changedId});
+        } catch (e) {
+            warn(`cannot monitor ${dir}: ${e.message}`);
         }
     }
 
     _teardownMonitor() {
-        if (this._monitor) {
-            if (this._monitorChangedId) {
-                this._monitor.disconnect(this._monitorChangedId);
-                this._monitorChangedId = 0;
-            }
-            this._monitor.cancel();
-            this._monitor = null;
+        for (const {monitor, changedId} of this._monitors) {
+            if (changedId)
+                monitor.disconnect(changedId);
+            monitor.cancel();
         }
+        this._monitors = [];
     }
 
     _scheduleRebuild() {
@@ -198,8 +265,7 @@ class Carousel {
             return;
         this._rebuildPendingId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, REBUILD_DEBOUNCE_MS, () => {
             this._rebuildPendingId = 0;
-            this._buildQueue();
-            this._showCurrent();
+            this._rebuildAndRestart();
             return GLib.SOURCE_REMOVE;
         });
     }
@@ -472,7 +538,7 @@ export default class CarouselExtension extends Extension {
         const qs = Main.panel.statusArea.quickSettings;
         const systemItem = qs?._system?._systemItem ?? qs?._system?.quickSettingsItems?.[0];
         if (!systemItem?.child) {
-            console.warn('Wallpaper Carousel: could not locate quick-settings system item; skipping button.');
+            warn('could not locate quick-settings system item; skipping button.');
             return;
         }
 

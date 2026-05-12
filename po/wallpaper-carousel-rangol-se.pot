@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Wallpaper Carousel\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-10 17:27+0200\n"
+"POT-Creation-Date: 2026-05-12 12:42+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:354
+#. metadata.json: name
 msgid "Wallpaper Carousel"
 msgstr ""
 
-#: extension.js:355
-msgid "Turned off because you changed your wallpaper."
+#. metadata.json: description
+msgid "Rotates the desktop wallpaper through images in a folder at a set interval."
 msgstr ""
 
-#: extension.js:390 prefs.js:242
+#: extension.js:483 prefs.js:271
 msgid "Next wallpaper"
 msgstr ""
 
-#: extension.js:445
+#: extension.js:545
 msgid "Open Wallpaper Carousel settings"
 msgstr ""
 
@@ -57,66 +57,70 @@ msgstr ""
 msgid "1 hour"
 msgstr ""
 
-#: prefs.js:139
+#: prefs.js:168
 msgid "No images in folder"
 msgstr ""
 
-#: prefs.js:207
+#: prefs.js:236
 msgid "Playback"
 msgstr ""
 
-#: prefs.js:209
+#: prefs.js:238
 msgid "Current wallpaper"
 msgstr ""
 
-#: prefs.js:221
+#: prefs.js:250
 msgid "Previous wallpaper"
 msgstr ""
 
-#: prefs.js:234
+#: prefs.js:263
 msgid "Resume"
 msgstr ""
 
-#: prefs.js:234
+#: prefs.js:263
 msgid "Pause"
 msgstr ""
 
-#: prefs.js:253
+#: prefs.js:282
 msgid "Interval"
 msgstr ""
 
-#: prefs.js:273
+#: prefs.js:302
 msgid "Shuffle"
 msgstr ""
 
-#: prefs.js:281
+#: prefs.js:310
 msgid "Source"
 msgstr ""
 
-#: prefs.js:283
+#: prefs.js:312
 msgid "Wallpaper folder"
 msgstr ""
 
-#: prefs.js:286
+#: prefs.js:315
 msgid "Not set"
 msgstr ""
 
-#: prefs.js:292
+#: prefs.js:321
 msgid "Browse…"
 msgstr ""
 
-#: prefs.js:304
+#: prefs.js:329
+msgid "Include subfolders"
+msgstr ""
+
+#: prefs.js:337
 msgid "Shell integration"
 msgstr ""
 
-#: prefs.js:306
+#: prefs.js:339
 msgid "Next wallpaper in desktop menu"
 msgstr ""
 
-#: prefs.js:310
+#: prefs.js:343
 msgid "Shortcut in Quick Settings"
 msgstr ""
 
-#: prefs.js:319
+#: prefs.js:352
 msgid "Select wallpaper folder"
 msgstr ""
