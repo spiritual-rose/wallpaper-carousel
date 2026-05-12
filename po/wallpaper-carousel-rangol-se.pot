@@ -1,11 +1,14 @@
-# Translation template for Wallpaper Carousel.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the Wallpaper Carousel package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Wallpaper Carousel\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-09 00:00+0000\n"
+"POT-Creation-Date: 2026-05-10 17:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -14,108 +17,106 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#. metadata.json: name
+#: extension.js:354
 msgid "Wallpaper Carousel"
 msgstr ""
 
-#. metadata.json: description
-msgid "Rotates the desktop wallpaper through images in a folder at a set interval."
+#: extension.js:355
+msgid "Turned off because you changed your wallpaper."
 msgstr ""
 
-#: extension.js
+#: extension.js:390 prefs.js:242
 msgid "Next wallpaper"
 msgstr ""
 
-#: extension.js
+#: extension.js:445
 msgid "Open Wallpaper Carousel settings"
 msgstr ""
 
-
-
-#: prefs.js
-msgid "Source"
-msgstr ""
-
-#: prefs.js
-msgid "Wallpaper folder"
-msgstr ""
-
-#: prefs.js
-msgid "Not set"
-msgstr ""
-
-#: prefs.js
-msgid "Browse…"
-msgstr ""
-
-#: prefs.js
-msgid "Interval"
-msgstr ""
-
-#: prefs.js
+#: prefs.js:25
 msgid "5 minutes"
 msgstr ""
 
-#: prefs.js
+#: prefs.js:26
 msgid "10 minutes"
 msgstr ""
 
-#: prefs.js
+#: prefs.js:27
 msgid "15 minutes"
 msgstr ""
 
-#: prefs.js
+#: prefs.js:28
 msgid "30 minutes"
 msgstr ""
 
-#: prefs.js
+#: prefs.js:29
 msgid "45 minutes"
 msgstr ""
 
-#: prefs.js
+#: prefs.js:30
 msgid "1 hour"
 msgstr ""
 
-#: prefs.js
-msgid "Shuffle"
+#: prefs.js:139
+msgid "No images in folder"
 msgstr ""
 
-#: prefs.js
+#: prefs.js:207
 msgid "Playback"
 msgstr ""
 
-#: prefs.js
+#: prefs.js:209
 msgid "Current wallpaper"
 msgstr ""
 
-#: prefs.js
+#: prefs.js:221
 msgid "Previous wallpaper"
 msgstr ""
 
-#: prefs.js
-msgid "Pause"
-msgstr ""
-
-#: prefs.js
+#: prefs.js:234
 msgid "Resume"
 msgstr ""
 
-#: prefs.js
-msgid "Select wallpaper folder"
+#: prefs.js:234
+msgid "Pause"
 msgstr ""
 
-#: prefs.js
+#: prefs.js:253
+msgid "Interval"
+msgstr ""
+
+#: prefs.js:273
+msgid "Shuffle"
+msgstr ""
+
+#: prefs.js:281
+msgid "Source"
+msgstr ""
+
+#: prefs.js:283
+msgid "Wallpaper folder"
+msgstr ""
+
+#: prefs.js:286
+msgid "Not set"
+msgstr ""
+
+#: prefs.js:292
+msgid "Browse…"
+msgstr ""
+
+#: prefs.js:304
 msgid "Shell integration"
 msgstr ""
 
-#: prefs.js
+#: prefs.js:306
 msgid "Next wallpaper in desktop menu"
 msgstr ""
 
-#: prefs.js
+#: prefs.js:310
 msgid "Shortcut in Quick Settings"
 msgstr ""
 
-#: prefs.js
-msgid "No images in folder"
+#: prefs.js:319
+msgid "Select wallpaper folder"
 msgstr ""

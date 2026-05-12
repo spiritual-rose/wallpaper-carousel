@@ -60,6 +60,10 @@ function findClosestPresetIndex(seconds) {
     return bestIdx;
 }
 
+// gnome-shell ExtensionState values (see js/misc/extensionUtils.js upstream).
+const EXTENSION_STATE_INACTIVE = 2;
+const EXTENSION_STATE_UNINSTALLED = 99;
+
 export default class CarouselPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
@@ -78,7 +82,32 @@ export default class CarouselPreferences extends ExtensionPreferences {
         page.add(this._buildSourceGroup(window, settings, signalIds));
         page.add(this._buildIntegrationGroup(settings));
 
+        // Prefs runs in its own gjs process; if the extension is disabled
+        // (Extensions app, gnome-extensions disable, uninstall), the window
+        // is left orphaned — settings writes still land, but the shell-side
+        // listeners are gone and the UI silently does nothing. Close on the
+        // ExtensionStateChanged D-Bus signal so the user gets a clear signal
+        // that the window is dead.
+        const uuid = this.uuid;
+        const dbusSubId = Gio.DBus.session.signal_subscribe(
+            'org.gnome.Shell',
+            'org.gnome.Shell.Extensions',
+            'ExtensionStateChanged',
+            '/org/gnome/Shell',
+            null,
+            Gio.DBusSignalFlags.NONE,
+            (_conn, _sender, _path, _iface, _signal, params) => {
+                const [changedUuid, info] = params.recursiveUnpack();
+                if (changedUuid !== uuid)
+                    return;
+                if (info.state === EXTENSION_STATE_INACTIVE ||
+                    info.state === EXTENSION_STATE_UNINSTALLED)
+                    window.close();
+            }
+        );
+
         window.connect('close-request', () => {
+            Gio.DBus.session.signal_unsubscribe(dbusSubId);
             for (const id of signalIds)
                 settings.disconnect(id);
         });

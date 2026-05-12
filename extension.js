@@ -126,9 +126,34 @@ class Carousel {
         else
             this._queue.sort();
 
+        // Prefer the wallpaper currently shown on screen if it's a member of
+        // our queue. On enable this avoids forcing a transition back to the
+        // last-tracked index when the user is already viewing a wallpaper from
+        // our folder. Consistent with _onExternalWallpaperChange's policy of
+        // not fighting external picks.
+        if (this._adoptDisplayedIndex())
+            return;
+
         const idx = this._settings.get_int('current-index');
         if (idx < 0 || idx >= this._queue.length)
             this._settings.set_int('current-index', 0);
+    }
+
+    // If the currently displayed wallpaper is a member of our queue, point
+    // current-index at it and return true. Otherwise leave current-index
+    // alone and return false.
+    _adoptDisplayedIndex() {
+        const displayedUri = this._bgSettings.get_string('picture-uri');
+        const displayedPath = displayedUri
+            ? Gio.File.new_for_uri(displayedUri).get_path()
+            : null;
+        if (!displayedPath)
+            return false;
+        const idx = this._queue.indexOf(displayedPath);
+        if (idx < 0)
+            return false;
+        this._settings.set_int('current-index', idx);
+        return true;
     }
 
     _shuffle() {
@@ -242,8 +267,24 @@ class Carousel {
     }
 
     next() {
+        // Clicking "Next wallpaper" from the desktop menu is an implicit
+        // resume. If we're paused (typically because the user picked something
+        // else and _onExternalWallpaperChange auto-paused us), adopt that
+        // displayed wallpaper as our position first so "next" advances to the
+        // file after it — otherwise we'd briefly flash back to the last
+        // carousel-tracked wallpaper before moving on. The prev/next buttons
+        // in the prefs window deliberately do NOT resume; the user can see
+        // the paused state and press play if they want it.
+        const wasPaused = this._settings.get_boolean('paused');
+        if (wasPaused)
+            this._adoptDisplayedIndex();
+
         this._advance(+1);
-        this._restartTimer();
+
+        if (wasPaused)
+            this._settings.set_boolean('paused', false);
+        else
+            this._restartTimer();
     }
 
     pauseForMenu() {
@@ -281,7 +322,8 @@ export default class CarouselExtension extends Extension {
         this._carousel = new Carousel(this._settings);
         this._carousel.start();
         this._menuOpenCount = 0;
-        this._touchedMenus = new Set();
+        this._touchedMenus = new Map();
+        this._bgManagerHandlers = new Map();
         this._injectionManager = null;
 
         this._extSignals = [
@@ -342,44 +384,83 @@ export default class CarouselExtension extends Extension {
             const ext = this;
             return function (bgManager) {
                 originalMethod.call(this, bgManager);
-                const menu = bgManager.backgroundActor._backgroundMenu;
-
-                const item = new PopupMenu.PopupMenuItem(_('Next wallpaper'));
-                item.connectObject('activate', () => ext._carousel?.next(), ext);
-                menu.addMenuItem(item);
-
-                // While any background menu is open, suspend the auto-rotate
-                // timer so a transition doesn't destroy the actor and close
-                // the menu out from under the user.
-                menu.connectObject('open-state-changed', (_m, isOpen) =>
-                    ext._onBackgroundMenuStateChanged(isOpen), ext);
-
-                ext._touchedMenus.add(menu);
+                ext._attachItemToMenu(bgManager.backgroundActor?._backgroundMenu);
             };
         });
 
-        // Rebuild already-created background menus so the new entry shows up.
-        Main.layoutManager._updateBackgrounds();
+        // Attach to already-created background menus in place rather than
+        // calling Main.layoutManager._updateBackgrounds(): that would destroy
+        // and recreate every background actor, cutting any in-flight wallpaper
+        // crossfade and briefly exposing the stage clear color (a jarring cut
+        // plus a blue flash) every time the extension enables or disables.
+        //
+        // For each pre-existing bgManager we also need our own 'changed'
+        // handler: gnome-shell's _createBackgroundManager does
+        //   bgManager.connect('changed', this._addBackgroundMenu.bind(this))
+        // at shell startup, and .bind() eagerly captures a reference to the
+        // ORIGINAL _addBackgroundMenu. Our InjectionManager override replaces
+        // the method on the prototype, but the already-bound signal handler
+        // still points at the original — so on every wallpaper change the
+        // pre-existing bgManagers rebuild their menu via the unwrapped method
+        // and our item silently disappears. New bgManagers created after
+        // enable bind to the wrapped method and are covered by the override
+        // alone.
+        for (const bgManager of Main.layoutManager._bgManagers ?? []) {
+            this._attachItemToMenu(bgManager.backgroundActor?._backgroundMenu);
+            const handlerId = bgManager.connect('changed', () => {
+                this._attachItemToMenu(bgManager.backgroundActor?._backgroundMenu);
+            });
+            this._bgManagerHandlers.set(bgManager, handlerId);
+        }
+    }
+
+    _attachItemToMenu(menu) {
+        if (!menu || this._touchedMenus.has(menu))
+            return;
+
+        const item = new PopupMenu.PopupMenuItem(_('Next wallpaper'));
+        item.connectObject('activate', () => this._carousel?.next(), this);
+        menu.addMenuItem(item);
+
+        // While any background menu is open, suspend the auto-rotate timer so
+        // a transition doesn't destroy the actor and close the menu out from
+        // under the user. Also drop the entry on menu destruction (e.g. a
+        // monitor reconfigure rebuilding backgrounds) to avoid stale refs.
+        menu.connectObject(
+            'open-state-changed', (_m, isOpen) => this._onBackgroundMenuStateChanged(isOpen),
+            'destroy', () => this._touchedMenus.delete(menu),
+            this);
+
+        this._touchedMenus.set(menu, item);
     }
 
     _teardownContextMenuItem() {
         if (!this._injectionManager)
             return;
 
-        // _updateBackgrounds() destroys these menus, but disconnect first
-        // so we don't leave dangling handlers if destruction is deferred.
-        for (const menu of this._touchedMenus) {
+        // Remove our items in place; no _updateBackgrounds() — see
+        // _refreshContextMenuItem for why.
+        for (const [menu, item] of this._touchedMenus) {
             try {
                 menu.disconnectObject(this);
+                item.destroy();
             } catch (_e) {
                 // Menu may have been destroyed already.
             }
         }
         this._touchedMenus.clear();
 
+        for (const [bgManager, id] of this._bgManagerHandlers) {
+            try {
+                bgManager.disconnect(id);
+            } catch (_e) {
+                // bgManager may have been destroyed already.
+            }
+        }
+        this._bgManagerHandlers.clear();
+
         this._injectionManager.clear();
         this._injectionManager = null;
-        Main.layoutManager._updateBackgrounds();
         this._menuOpenCount = 0;
     }
 
